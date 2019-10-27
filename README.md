@@ -10,12 +10,6 @@ The Humanitary app enables victims to share their own personal stories about​ 
 
 ## Technical Design
 
-This application was built from the ground up using swift and node.js. For the backend, Google's firebase real time database was used.
+This application was built from the ground up using swift and node.js. For the backend, Google's firebase real time database was used. Swift was used to handle the IOS development of the application, while node.js was used to connect the app to google cloud functions to handle push notifications to user devices. 
 
-**Core Programming Concepts**
-
-1.) 
-2.) 
-3.) 
-4.)
-5.) 
+Please feel free to check out the code.

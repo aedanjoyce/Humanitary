@@ -8,16 +8,78 @@
 
 import UIKit
 import CoreData
+import Firebase
+import GooglePlaces
+import UserNotifications
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate, UNUserNotificationCenterDelegate {
 
     var window: UIWindow?
 
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
+        FirebaseApp.configure()
+        window = UIWindow()
         // Override point for customization after application launch.
+        window?.rootViewController = TabBarController()
+        UITabBar.appearance().tintColor = UIColor.humanitaryBlue
+       // window?.rootViewController = StoryManager(collectionViewLayout: UICollectionViewFlowLayout())
+        UINavigationBar.appearance().backgroundColor = UIColor.white
+        UINavigationBar.appearance().setBackgroundImage(UIImage(), for: .default)
+        UINavigationBar.appearance().tintColor = UIColor.black
+        GMSPlacesClient.provideAPIKey("AIzaSyCbEajQZrC8XCrYDMOR4fOWR9-oi2IIFcU")
+        registerForNotifications(application: application)
         return true
+    }
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        print("Registered for notifications:", deviceToken)
+    }
+    func messaging(_ messaging: Messaging, didRefreshRegistrationToken fcmToken: String) {
+        print("Registered with FCM with token:", fcmToken)
+    }
+    // listen for user notifications
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        completionHandler(.alert)
+    }
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        let userInfo = response.notification.request.content.userInfo
+        
+        if let followerId = userInfo["followerId"] as? String {
+            print(followerId)
+            
+            let userProfileController = ProfileViewController(collectionViewLayout: UICollectionViewFlowLayout())
+            userProfileController.userId = followerId
+            
+            if let mainTabBarController = window?.rootViewController?.tabBarController as? TabBarController {
+                mainTabBarController.selectedIndex = 0
+                mainTabBarController.presentedViewController?.dismiss(animated: true, completion: nil)
+                if let homeNavigationController = mainTabBarController.viewControllers?.first as? UINavigationController {
+                    homeNavigationController.pushViewController(userProfileController, animated: true)
+                }
+            }
+        }
+    }
+    
+    private func registerForNotifications(application: UIApplication) {
+        print("Attempting to register APNS...")
+        Messaging.messaging().delegate = self
+        UNUserNotificationCenter.current().delegate = self
+        // user notification auth
+        let options: UNAuthorizationOptions = [.alert, .badge, .sound]
+        UNUserNotificationCenter.current().requestAuthorization(options: options) { (granted, err) in
+            if let err = err {
+                print("Failed to request auth:", err)
+                return
+            }
+            if granted {
+                print("Auth granted")
+            } else {
+                print("Auth denied")
+            }
+        }
+        application.registerForRemoteNotifications()
     }
 
     func applicationWillResignActive(_ application: UIApplication) {

@@ -1,4 +1,4 @@
-# Humanitary
+# Humanitary: News and Fundraising App
 
 ---
 
